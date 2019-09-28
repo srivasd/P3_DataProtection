@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="P3_PD:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/P3_PD_jar</output-path>
+    <root id="archive" name="P3_PD.jar">
+      <element id="module-output" name="P3_PD" />
+    </root>
+  </artifact>
+</component>

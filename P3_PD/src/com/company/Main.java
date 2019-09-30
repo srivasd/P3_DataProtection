@@ -11,9 +11,9 @@ public class Main {
         SymmetricCipher symmetricCipher = new SymmetricCipher();
 
         //Comment this before generating jar
-        //args = new String[1];
-        //args[0] = "g";
-        //args[1] = "test.txt";
+        args = new String[2];
+        args[0] = "e";
+        args[1] = "C:\\Users\\maksy\\Desktop\\test.txt";
         //args[2] = "testOutput.txt";
 
         System.out.println("Application for secure storage of files using [AES-128 CBC PKCS#5] and [RSA-128]");
@@ -66,19 +66,37 @@ public class Main {
                             System.arraycopy(cipheredSessionKey, 0, fileToHash, aLen, bLen);
 
                             //Get the private Key
-                            String passphrase = "";
-
-                            while (passphrase.length() != 16) {
-                                System.out.print("Type the passphrase you used to encrypt the private key (16 character length): ");
-                                Scanner s = new Scanner(System.in);
-                                passphrase = s.nextLine();
-                            }
 
                             byte[] privateKeyBytesEnc = readFileToByteArray(new File(rsa.PRIVATE_KEY_FILE));
-                            byte[] privateKeyBytes = symmetricCipher.decryptCBC(privateKeyBytesEnc, passphrase.getBytes());
-                            // *********CONTROLAR AQUÍ EL CASO EN EL QUE SE META DE MANERA INCORRECTA AL PASSPHRASE*********
-                            Object privateKeyObject = convertFromBytes(privateKeyBytes);
-                            PrivateKey privateKey = (PrivateKey) privateKeyObject;
+                            byte[] privateKeyBytes = new byte[0];
+                            boolean decryptionResult = true;
+                            Object privateKeyObject;
+                            PrivateKey privateKey = null;
+                            do{
+                                try{
+                                    String passphrase = "";
+
+                                    System.out.print("Type the passphrase you used to encrypt the private key (16 character length): ");
+                                    Scanner s = new Scanner(System.in);
+                                    passphrase = s.nextLine();
+
+                                    while (passphrase.length() != 16) {
+                                        System.out.println("Wrong length");
+                                        System.out.print("Type the passphrase you used to encrypt the private key (16 character length): ");
+                                        passphrase = s.nextLine();
+                                    }
+                                    decryptionResult = true;
+                                    privateKeyBytes = symmetricCipher.decryptCBC(privateKeyBytesEnc, passphrase.getBytes());
+                                    privateKeyObject = convertFromBytes(privateKeyBytes);
+                                    privateKey = (PrivateKey) privateKeyObject;
+                                }catch (ArrayIndexOutOfBoundsException e1){
+                                    System.out.println("Wrong passphrase");
+                                    decryptionResult = false;
+                                }catch (Exception e2){
+                                    System.out.println("Error, check if private key is correct");
+                                    decryptionResult = false;
+                                }
+                            }while(!decryptionResult);
 
                             //Firmamos el contenido del fichero y la clave de sesion
                             byte[] sign = rsa.sign(fileToHash, privateKey);
@@ -144,7 +162,7 @@ public class Main {
 
             }
             else {
-                System.out.println("Not valid command found (g,e,d)");
+                System.out.println("Not valid command found at first position (g,e,d)");
             }
         }
     }

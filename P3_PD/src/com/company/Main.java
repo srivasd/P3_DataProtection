@@ -1,6 +1,7 @@
 package com.company;
 import java.io.*;
 import java.security.*;
+import java.util.Arrays;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -11,10 +12,10 @@ public class Main {
         SymmetricCipher symmetricCipher = new SymmetricCipher();
 
         //Comment this before generating jar
-        args = new String[2];
-        args[0] = "e";
-        args[1] = "C:\\Users\\maksy\\Desktop\\test.txt";
-        //args[2] = "testOutput.txt";
+        args = new String[3];
+        args[0] = "d";
+        args[1] = "C:\\Users\\maksy\\Desktop\\fileEncrypted.txt";
+        args[2] = "C:\\Users\\maksy\\Desktop\\test.txt";
 
         System.out.println("Application for secure storage of files using [AES-128 CBC PKCS#5] and [RSA-128]");
 
@@ -135,31 +136,103 @@ public class Main {
                 //Casos erroneos TODO:
 
                 if(args.length == 3) {
-                    File inputFile = new File(args[3]);
+                    File inputFile = new File(args[1]);
                     if(!inputFile.exists())
-                        System.out.println("The source file: " + args[3] + " does not exist");
+                        System.out.println("The source file: " + args[1] + " does not exist");
                     else {
                         //Leer fichero
-                        byte[] fileToBytes = readFileToByteArray(new File(args[3]));
+                        byte[] fileToBytes = readFileToByteArray(new File(args[1]));
 
                         //Dividir fichero
-
                         //Signature -> 1024
+                        byte[] signature = Arrays.copyOfRange(fileToBytes,fileToBytes.length - 128,fileToBytes.length);
+                        byte[] fileToVerify = Arrays.copyOfRange(fileToBytes,0,fileToBytes.length - 128);
+                        boolean verifyResult = false;
+
 
                         //verify signature
+                        try {
+                            verifyResult = rsa.verify(fileToVerify, signature, rsa.readPublicKey(rsa.PUBLIC_KEY_FILE));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } catch (ClassNotFoundException e) {
+                            e.printStackTrace();
+                        }
 
-                        //key->
+                        //Signature was correct, now proceed with decryption
+                        if(verifyResult){
 
-                        //Decrypt key
+                            //Session key
+                            byte[] encryptedSessionKey = Arrays.copyOfRange(fileToVerify,fileToVerify.length - 128,fileToVerify.length);
 
-                        //Decrypt rest of the file(text) with decrypted key
 
-                        //Guardar texto en claro
+                            //Decrypt key
+                            //Get the private Key
+                            byte[] privateKeyBytesEnc = readFileToByteArray(new File(rsa.PRIVATE_KEY_FILE));
+                            byte[] privateKeyBytes = new byte[0];
+                            boolean decryptionResult = true;
+                            Object privateKeyObject;
+                            PrivateKey privateKey = null;
+                            do {
+                                try {
+                                    String passphrase = "";
+
+                                    System.out.print("Type the passphrase you used to encrypt the private key (16 character length): ");
+                                    Scanner s = new Scanner(System.in);
+                                    passphrase = s.nextLine();
+
+                                    while (passphrase.length() != 16) {
+                                        System.out.println("Wrong length");
+                                        System.out.print("Type the passphrase you used to encrypt the private key (16 character length): ");
+                                        passphrase = s.nextLine();
+                                    }
+                                    decryptionResult = true;
+                                    privateKeyBytes = symmetricCipher.decryptCBC(privateKeyBytesEnc, passphrase.getBytes());
+                                    privateKeyObject = convertFromBytes(privateKeyBytes);
+                                    privateKey = (PrivateKey) privateKeyObject;
+                                } catch (ArrayIndexOutOfBoundsException e1) {
+                                    System.out.println("Wrong passphrase");
+                                    decryptionResult = false;
+                                } catch (Exception e2) {
+                                    System.out.println("Error, check if private key is correct");
+                                    decryptionResult = false;
+                                }
+                            }while(!decryptionResult);
+
+                            byte[] sessionKey = rsa.decrypt(encryptedSessionKey, privateKey);
+
+
+                            //Decrypt rest of the file(text) with decrypted key
+                            byte[] encryptedData = Arrays.copyOfRange(fileToVerify,0,fileToVerify.length - 128);
+                            byte[] plainTextBytes = new byte[0];
+                            try {
+                                plainTextBytes = symmetricCipher.decryptCBC(encryptedData, sessionKey);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+
+                            //Guardar texto en claro
+                            //Escribimos en el fichero
+                            if (args.length == 2) {
+                                //Set the name of the encrypted file if it is not indicated in the command
+                                System.out.println(args[1]);
+                                String[] pathSplit = args[1].split("\\.");
+                                String outputPath = "fileDecrypted." + pathSplit[pathSplit.length - 1];
+                                File outputFile = new File(outputPath);
+                                writeBytesToFile(plainTextBytes, outputFile);
+                            } else {
+                                //Set the name of the encrypted file if it is indicated in the command
+                                File outputFile = new File(args[2]);
+                                writeBytesToFile(plainTextBytes, outputFile);
+                            }
+
+                        }
+                        else{
+                            System.out.println("Signature could not be verified, exiting process (Wrong public key or signature)");
+                        }
 
                     }
-
                 }
-
             }
             else {
                 System.out.println("Not valid command found at first position (g,e,d)");

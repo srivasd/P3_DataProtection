@@ -12,10 +12,10 @@ public class Main {
         SymmetricCipher symmetricCipher = new SymmetricCipher();
 
         //Comment this before generating jar
-        args = new String[3];
+        /*args = new String[3];
         args[0] = "d";
         args[1] = "C:\\Users\\maksy\\Desktop\\fileEncrypted.txt";
-        args[2] = "C:\\Users\\maksy\\Desktop\\test.txt";
+        args[2] = "C:\\Users\\maksy\\Desktop\\test.txt";*/
 
         System.out.println("Application for secure storage of files using [AES-128 CBC PKCS#5] and [RSA-128]");
 
@@ -123,7 +123,12 @@ public class Main {
                                 writeBytesToFile(finalFile, outputFile);
                             }
 
-                        } catch (Exception e) {
+                        } catch (FileNotFoundException fne ) {
+                            String currentDirectory = System.getProperty("user.dir");
+                            String fileName = rsa.PUBLIC_KEY_FILE.split("/")[1];
+                            String path = currentDirectory + "\\" + fileName;
+                            System.out.println("Public key not found in: " + path);
+                        }catch (Exception e ) {
                             e.printStackTrace();
                         }
                     } else {
@@ -153,10 +158,11 @@ public class Main {
                         //verify signature
                         try {
                             verifyResult = rsa.verify(fileToVerify, signature, rsa.readPublicKey(rsa.PUBLIC_KEY_FILE));
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } catch (ClassNotFoundException e) {
-                            e.printStackTrace();
+                        } catch (IOException | ClassNotFoundException e) {
+                            String currentDirectory = System.getProperty("user.dir");
+                            String fileName = rsa.PUBLIC_KEY_FILE.split("/")[1];
+                            String path = currentDirectory + "\\" + fileName;
+                            System.out.println("Public key not found in: " + path);
                         }
 
                         //Signature was correct, now proceed with decryption

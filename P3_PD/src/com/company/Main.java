@@ -113,8 +113,7 @@ public class Main {
                             if (args.length == 2) {
                                 //Set the name of the encrypted file if it is not indicated in the command
                                 System.out.println(args[1]);
-                                String[] pathSplit = args[1].split("\\.");
-                                String outputPath = "fileEncrypted." + pathSplit[pathSplit.length - 1];
+                                String outputPath = "fileEncrypted.enc";
                                 File outputFile = new File(outputPath);
                                 writeBytesToFile(finalFile, outputFile);
                             } else {
@@ -230,8 +229,7 @@ public class Main {
                             if (args.length == 2) {
                                 //Set the name of the encrypted file if it is not indicated in the command
                                 System.out.println(args[1]);
-                                String[] pathSplit = args[1].split("\\.");
-                                String outputPath = "fileDecrypted." + pathSplit[pathSplit.length - 1];
+                                String outputPath = "fileDecrypted.dec";
                                 File outputFile = new File(outputPath);
                                 writeBytesToFile(plainTextBytes, outputFile);
                             } else {

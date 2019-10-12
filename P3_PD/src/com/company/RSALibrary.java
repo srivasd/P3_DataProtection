@@ -151,7 +151,7 @@ public class RSALibrary {
             ciphertext = cipher.doFinal(plaintext);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Unexpected error in encryption process");
         }
         return ciphertext;
     }
@@ -176,7 +176,7 @@ public class RSALibrary {
             plaintext = cipher.doFinal(ciphertext);
 
         } catch (Exception ex) {
-            ex.printStackTrace();
+            System.out.println("Unexpected error in RSA decryption");
         }
 
         return plaintext;
@@ -206,7 +206,7 @@ public class RSALibrary {
             signedInfo = signature.sign();
 
         } catch (Exception ex) {
-            ex.printStackTrace();
+            System.out.println("Unexpected error in sign process");
         }
 
         return signedInfo;
@@ -237,7 +237,7 @@ public class RSALibrary {
             result = signature.verify(signed);
 
         } catch (Exception ex) {
-            ex.printStackTrace();
+            System.out.println("Unexpected error in file verify process");
         }
 
         return result;
@@ -248,13 +248,6 @@ public class RSALibrary {
              ObjectOutput out = new ObjectOutputStream(bos)) {
             out.writeObject(object);
             return bos.toByteArray();
-        }
-    }
-
-    private Object convertFromBytes(byte[] bytes) throws IOException, ClassNotFoundException {
-        try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-             ObjectInput in = new ObjectInputStream(bis)) {
-            return in.readObject();
         }
     }
 

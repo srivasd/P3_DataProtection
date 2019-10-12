@@ -33,7 +33,7 @@ public class Main {
                     rsa.generateKeysPrivateEncrypted();
                     System.out.println("Keys generated in the current directory");
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    System.out.println("Unexpected error in keys generation");;
                 }
             }
             else if(command.equals("e") || command.equals("-e")) {
@@ -51,7 +51,7 @@ public class Main {
                         try {
                             SecureRandom.getInstanceStrong().nextBytes(sessionKey);
                         } catch (NoSuchAlgorithmException e) {
-                            e.printStackTrace();
+                            System.out.println("Algorithm exception");
                         }
 
                         try {
@@ -129,7 +129,7 @@ public class Main {
                             String path = currentDirectory + "\\" + fileName;
                             System.out.println("Public key not found in: " + path);
                         }catch (Exception e ) {
-                            e.printStackTrace();
+                            System.out.println("Unexpected error in encryption process");
                         }
                     } else {
                         System.out.println("The input file does not exist. Try again.");
@@ -137,10 +137,10 @@ public class Main {
                 }
             }
             else if(command.equals("d") || command.equals("-d")) {
-
-                //Casos erroneos TODO:
-
-                if(args.length == 3) {
+                if(args.length == 1) {
+                    System.out.println("The input and output files have not been indicated");
+                }
+                else if(args.length == 3 || args.length == 2 ) {
                     File inputFile = new File(args[1]);
                     if(!inputFile.exists())
                         System.out.println("The source file: " + args[1] + " does not exist");
@@ -174,6 +174,15 @@ public class Main {
 
                             //Decrypt key
                             //Get the private Key
+                            try {
+                                verifyResult = rsa.verify(fileToVerify, signature, rsa.readPublicKey(rsa.PUBLIC_KEY_FILE));
+                            } catch (IOException | ClassNotFoundException e) {
+                                String currentDirectory = System.getProperty("user.dir");
+                                String fileName = rsa.PUBLIC_KEY_FILE.split("/")[1];
+                                String path = currentDirectory + "\\" + fileName;
+                                System.out.println("Public key not found in: " + path);
+                            }
+
                             byte[] privateKeyBytesEnc = readFileToByteArray(new File(rsa.PRIVATE_KEY_FILE));
                             byte[] privateKeyBytes = new byte[0];
                             boolean decryptionResult = true;
@@ -207,14 +216,13 @@ public class Main {
 
                             byte[] sessionKey = rsa.decrypt(encryptedSessionKey, privateKey);
 
-
                             //Decrypt rest of the file(text) with decrypted key
                             byte[] encryptedData = Arrays.copyOfRange(fileToVerify,0,fileToVerify.length - 128);
                             byte[] plainTextBytes = new byte[0];
                             try {
                                 plainTextBytes = symmetricCipher.decryptCBC(encryptedData, sessionKey);
                             } catch (Exception e) {
-                                e.printStackTrace();
+                                System.out.println("Unexpected error in decrption of file");
                             }
 
                             //Guardar texto en claro
@@ -256,7 +264,7 @@ public class Main {
             fis.close();
 
         }catch(IOException ioExp){
-            ioExp.printStackTrace();
+            System.out.println("Unexpected error in file reading");
         }
         return bArray;
     }
@@ -290,7 +298,7 @@ public class Main {
         }
 
         catch (Exception e) {
-            System.out.println("Exception: " + e);
+            System.out.println("Unexpected error in file writing");
         }
     }
 }
